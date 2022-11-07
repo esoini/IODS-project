@@ -1,7 +1,9 @@
 
 # About the project
 
-*Write a short description about the course and add a link to your GitHub repository here. This is an R Markdown (.Rmd) file so you should use R Markdown syntax.*
+
+IODS-course introduces the basics of data science, and touches upon themes of open science and the use of open data. During the course participants learn basic tools to use with open data with R, and learn the principles of open science.
+
 
 ```{r}
 # This is a so-called "R chunk" where you can write R code.
@@ -9,5 +11,10 @@
 date()
 
 ```
-The text continues here.
+Assignment1
+
+Exercise set 1 is fairly good crashcourse to R. It introduces a lot of useful commands that are often needed to tidy the data for further analysis. For a introduction-level book I prefer data analysis with R (the one with the parrot)
+
+link to github diary
+https://github.com/esoini/IODS-project
 
