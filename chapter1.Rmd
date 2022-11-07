@@ -13,10 +13,12 @@ date()
 ```
 Assignment1
 
-Exercise set 1 is fairly good crashcourse to R. It introduces a lot of useful commands that are often needed to tidy the data for further analysis. For a introduction-level book I prefer data analysis with R (the one with the parrot)
+Exercise set 1 is fairly good crashcourse to R. It introduces a lot of useful commands that are often needed to tidy the data for further analysis. Most of the commands were familiar, but I did not know that one can use pipe when doing analyses. That will be helpful with e.g. doing analyses for subset of the data. For a introduction-level book I prefer data analysis with R (the one with the parrot). Having read a couple of introductory level books on R and data-analysis I think the differences are minor, and at least any of the ones I have read would suffice for a beginner.
 
-Did the thing with the token, wasnt nice, but it works. Who would have thought that university laptops would require remote access to install those.
+Did the thing with the token, took some time, but it works. Who would have thought that university laptops would require remote access to install GIT.
 
-link to github diary
+link to github diary:
+https://esoini.github.io/IODS-project/
+repository:
 https://github.com/esoini/IODS-project
 
