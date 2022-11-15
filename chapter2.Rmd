@@ -59,13 +59,13 @@ plot(lm2,par(mfrow= c(2,2)), which = c(1,2,5) )
 ````
 
 
-4 The residuals vs. fitted vlaues show that most of the residuals are symmertical around zero, implicating that the model fits data ok. There seems to be greater variability with fitted values, which may be due the fact that variance is not constant, so transformation could be used to account that. 
+##4 The residuals vs. fitted vlaues show that most of the residuals are symmertical around zero, implicating that the model fits data ok. There seems to be greater variability with fitted values, which may be due the fact that variance is not constant, so transformation could be used to account that. 
 
-In the qq-plot the observations fit to the line, expect in the ends. This indicates that the association may not be linear. Quadratic model could fit the data better.
+In the qq-plot the observations fit to the line, but there is some deviations in the low and high values. This indicates that the association may not be linear. Quadratic model could fit the data better.
 
 Leverage vs. residuals shows that some observations are close to cooks distance, but none are significant. Hence there is no reason to remove any of the observations.
 
-Overall, noramlity, constance of variance seem fine, and there are no observations that would significantly inmpact the model. Thus we can assue that all the assumptioms were met.
+Overall, normality and constance of variance seem fine, and there are no observations that would significantly inmpact the model. Thus we can assue that all the assumptioms of linear regression were met.
 
 
 
