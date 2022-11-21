@@ -1,0 +1,106 @@
+---
+title: "Chapter3"
+author: "esoini"
+date: "2022-11-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+#libraries
+library(ggplot2)
+library(dplyr)
+library("GGally")
+#reading the data
+alc<-read.csv("./data/alc.csv")
+print(colnames(alc))
+
+
+
+```
+
+Of the variables in data, I chose sex, age, quality of family relationships and current health status. Rationale behind the chosen variables was that as sexes differ in their vulnerability to internalizing/externalizing problems, I hypothesize that male sex would be a risk factor for high use of alcohol. Adolescent in different ages may differ in the perceived peer-pressure to drink alcohol, or to blend in the group, hence I hypothesize that older age (ie. closer to twenty) may also be a risk factor. Lastly family relationships and current health status may cause distress in individual, and alcohol may be used as coping mechanism to alleviate the distress.
+
+
+```{r}
+alc1<-alc[c("age","sex","famrel", "health", "high_use")]
+
+fig <- ggpairs(alc1, mapping = aes(alpha=0.3), lower = list(combo = wrap("facethist", bins = 20)))
+fig
+table(alc1$sex,alc1$high_use)
+
+g2<-ggplot(alc1, aes(x=high_use, y= famrel,col=sex))
+g2+ geom_boxplot()
+
+g3<-ggplot(alc1, aes(x=high_use, y=health,col=sex))
+g3+ geom_boxplot()
+
+cor(alc1$high_use, alc1$age)
+
+```
+Contrary to my hypothesis, health does not seem to be associated with high alcohol use, though much of the participants were in good health, which may mask some of the effect (i.e. ceiling effect). High alc use correlated positively with age, which is in line with my hypothesis. Also, in line with the earlier hypothesis, men/boys seem to use alcohol more. Family relationships have high mean, and some outliers at the lower end, hence the variable may not be suited to be used as continuous variable in the analyses (thou that is what I intend to do)
+
+```{r}
+#Logistic regression
+
+r1<-glm(high_use~age+sex+health+famrel, data= alc1, family="binomial")
+summary(r1)
+```
+of the chosen variables male sex and family relationships were the statistically significant at alpha level .001, and age at alpha level .05. Current health status was not associated woth high alcohol use. Male sex was associated with considerable increase (log odds= 0.95) in high alcohol use, and age was associated with slight increase (log odds= .22). Good family relationships were associated with lower log odds of high alcohol use (log odds= -.36).
+
+
+```{r}
+# compute odds ratios (OR)
+OR <- coef(r1) %>% exp
+
+# compute confidence intervals (CI)
+CI<-confint(r1)%>% exp
+
+print(cbind(OR, CI))
+```
+
+Male sex was associated with 2.5 higher odds of having high alcohol use, compared to females, and the 95% confidence intervals range from 1.6 to 4.2. Family relationship was associated with 0.7 times lower odds of having high alcohol use, meaning that one unit increase in family relationship scale decreased the odds of having high alcohol use. Lastly one year increase in age increased the odds of having high alcohol use by 1.2, and 95 CI ranged from 1.03 to 1.5.
+
+```{r}
+
+# predict() the probability of high_use
+probabilities <- predict(r1, type = "response")
+
+# add the predicted probabilities to 'alc'
+alc1 <- mutate(alc1, probability = probabilities)
+
+# use the probabilities to make a prediction of high_use
+alc1 <- mutate(alc1, prediction = ifelse(probabilities > 0.5,T,F))
+
+# see the last ten original classes, predicted probabilities, and class predictions
+
+# tabulate the target variable versus the predictions
+table(high_use = alc1$high_use, prediction = alc1$prediction)
+
+alc1 <- mutate(alc1, prediction = probability > 0.5)
+
+
+# define a loss function (mean prediction error)
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+loss_func(class = alc1$high_use, prob = alc1$probability)
+
+``` 
+Model is correct in 246+20/13+91= 72% of the cases, compared to random guessing (50/50). Training error is 28%.
+
+Cross validation
+```{r}
+
+# K-fold cross-validation
+library(boot)
+cv <- cv.glm(data = alc1, cost = loss_func, glmfit = r1, K = 10)
+
+# average number of wrong predictions in the cross validation
+cv$delta[1]
+
+```
+Current model predicts wrongly in about 30% of the cases in the cross-validation. The number is higher compared to the training data as the model may be over fitted  by exploiting the random variation of the training data, which in turn may not be generalized to other data. Cross validation uses smaller subsets of the data to test the generalizability and over-fitting. 
+
