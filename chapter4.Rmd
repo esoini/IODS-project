@@ -1,0 +1,155 @@
+---
+title: "chapter4"
+author: "esoini"
+date: "2022-11-24"
+output: html_document
+---
+
+```{r}
+#Loading the data and axploring the dimensions and structure
+library(MASS)
+library(ggplot2)
+data("Boston")
+str(Boston)
+dim(Boston)
+```
+Boston dataset is a part of MASS, and it includes housing values in suburbs of boston. It has 506 observations and 14 variables, of which 12 are numerical and 2 are integers.
+
+````{r}
+#Visualizing
+library(corrplot)
+library(dplyr)
+cors <- cor(Boston) %>% round(2)
+corrplot(cors,method = "pie",type= "upper")
+summary(cors)
+
+#par(mfrow=c(4, 4))
+colnames <- dimnames(Boston)[[2]]
+for (i in seq_along(colnames)) {
+    hist(Boston[,i], main=colnames[i], probability=TRUE, col="pink", border="white")
+}
+
+
+
+
+`````
+The distributions of rm,lstat seem normally distributed. age, dis,medv seem skewed. Indus and tax seem to have outliers/ otherwise high variability in the observed values as do black, crim and chas (when comparing the histograms with the printed summary.
+
+Strongest negative correlations are with distance to employment centers and industry, nitrogen oxide concentration and age (unit build before 1940), all > -.7. Particularly interesting are the weak  correlations of chas with any other variable. Of the positive correlations strongest ones are between tax and rad (tax-rate and access to radiall highways), indus and nox and age and nox and indus and nox.
+
+````{r}
+#scaling the data
+library(dplyr)
+bs <- as.data.frame(scale(Boston))
+summary(bs)
+#crime as factor using quantiles
+q<-quantile(bs$crim)
+bs$crime <- cut(bs$crim, breaks = q, include.lowest = TRUE, labels = c("low", "med_low", "med_high", "high"))
+#removing original crim variable
+bs<- dplyr::select(bs, -crim)
+`````
+Standardizing the data centers the obs around 0 so that the distribution has standard distribution of 1, i.e. the data is normally distributed.
+
+````{r}
+#Fitting lda
+#copy-pasting the code for training set 
+n <- nrow(bs)
+# choose randomly 80% of the rows
+ind <- sample(n,  size = n * 0.8)
+# create train set
+train <- bs[ind,]
+# create test set 
+test <- bs[-ind,]
+
+
+#fitting the lda
+eka<-lda(crime~., data= train)
+
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+eka
+classes <- as.numeric(train$crime)
+plot(eka, dimen = 2,col=classes, pch=classes)
+lda.arrows(eka, myscale = 2)
+```
+
+Predicting the correct classes
+```{r}
+# save the correct classes from test data
+correct_classes <- test$crime
+# remove the crime variable from test data
+test <- dplyr::select(test, -crime)
+pred <- predict(eka, newdata = test)
+table(correct=correct_classes, predicted=pred$class)
+```
+
+The lda predicts the "high" class well, with few to none misclassifications. There seems to ambiquity with lower levels of the cime variable.
+
+##Reload the Boston dataset and standardize the dataset (we did not do this in the Exercise Set, but you should scale the variables to get comparable distances). Calculate the distances between the observations. Run k-means algorithm on the dataset. Investigate what is the optimal number of clusters and run the algorithm again. Visualize the clusters (for example with the pairs() or ggpairs() functions, where the clusters are separated with colors) and interpret the results. (0-4 points)
+
+```{r}
+data("Boston")
+dat1<-scale(Boston)
+dat<-as.data.frame(scale(Boston))
+#Distances
+dist_eu<-dist(dat1)
+
+#setting seed for reproducibility
+set.seed(666)
+# determine the number of clusters
+k_max <- 10
+
+# calculate the total within sum of squares
+twcss <- sapply(1:k_max, function(k){kmeans(dat, k)$tot.withinss})
+
+# visualize the results
+qplot(x = 1:k_max, y = twcss, geom = 'line')
+
+# k-means clustering
+km <- kmeans(dat, centers = 2)
+
+# plot the Boston dataset with clusters
+pairs(Boston[6:10], col = km$cluster)
+
+
+```
+2 seems to be the optimal number of groups. Some variables seem to differentiate the groups better, for example tax and rad, but for most variables there seems to be a lot of overlap.
+
+Bonus: Perform k-means on the original Boston data with some reasonable number of clusters (> 2). Remember to standardize the dataset. Then perform LDA using the clusters as target classes. Include all the variables in the Boston data in the LDA model. Visualize the results with a biplot (include arrows representing the relationships of the original variables to the LDA solution). Interpret the results. Which variables are the most influential linear separators for the clusters? (0-2 points to compensate any loss of points from the above exercises).
+
+```{r}
+set.seed(999)
+km2<-kmeans(dat,centers = 4)
+targ<-km2$cluster
+#variable chas appeared to be constant across groups, thus it was removed
+lda2<-lda(targ~crim+zn+age+dis+rad+tax+ptratio+black+lstat+medv+nox+indus+rm, data = dat)
+lda2<-lda(targ~., data = dat)
+
+# the function for lda biplot arrows
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+# target classes as numeric
+classes <- as.numeric(targ)
+
+# plot the lda results
+plot(lda2, dimen = 2,col= classes)
+lda.arrows(lda2, myscale = 1)
+pairs(dat[6:10],col= targ)
+
+```
+
+Radiation seems to affect the model most.
