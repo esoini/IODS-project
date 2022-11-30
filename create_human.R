@@ -11,8 +11,11 @@ str(gii)
 summary(hd)
 summary(gii)
 #renaming the variables
-colnames(hd)<-c("hdi.rank","country","hdi","liexp","edu","gni","gni-hdi")
-colnames(gii)<-c("gi.rank","country","gii","abr","repre_parl",
+#checking the original colnames and changing them
+colnames(hd)
+colnames(hd)<-c("hdi.rank","country","hdi","liexp","edu","medu","gni","gni-hdi")
+colnames(gii)
+colnames(gii)<-c("gii.rank","country","gii","mat_mor","abr","repre_parl",
                  "sedu_f","sedu_m","lab_f","lab_m")
 gii$sedu_rat<-gii$sedu_f/gii$sedu_m
 gii$lab_rat<-gii$lab_f/gii$lab_m
