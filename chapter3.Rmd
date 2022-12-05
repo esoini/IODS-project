@@ -1,9 +1,4 @@
----
-title: "Chapter3"
-author: "esoini"
-date: "2022-11-18"
-output: html_document
----
+# 3:Logistic regression
 
 ```{r setup, include=FALSE}
 
