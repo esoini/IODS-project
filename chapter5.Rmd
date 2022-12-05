@@ -79,7 +79,6 @@ library(dplyr)
 library(tidyr)
 str(tea)
 dim(tea)
-View(tea)
 
 tea1<-(tea[,1:10])
 ggpairs(tea[,1:10])
