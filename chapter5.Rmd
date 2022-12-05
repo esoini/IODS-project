@@ -1,13 +1,7 @@
----
-title: "chapter5"
-author: "esoini"
-date: "2022-12-01"
-output: html_document
----
+# 5: Dimensionality reduction techniques
 
-Show a graphical overview of the data and show summaries of the variables in the data. Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them. (0-3 points)
 
-Downloading the data, and showing summaries
+Downloading the data, and showing summaries and graphical overview
 ```{r}
 library(dplyr)
 library(GGally)
@@ -16,10 +10,8 @@ row.names(dat)<-dat$X
 dat<-dat[,2:9]
 summary(dat)
 ggpairs(dat)
-
-
 ```
-Data has 155 observations and 9 variables. 
+Data has 155 observations and 8 variables. 
 
 VARIABLES:
 country= Country
@@ -37,36 +29,47 @@ Most of the variables seem to normally distributed. abr seems to be skewed to th
 Life-expectancy seems. 
 
 
-Perform principal component analysis (PCA) on the raw (non-standardized) human data. Show the variability captured by the principal components. Draw a biplot displaying the observations by the first two principal components (PC1 coordinate in x-axis, PC2 coordinate in y-axis), along with arrows representing the original variables. (0-2 points)
+Principal component analysis (PCA) on the raw (non-standardized) human data and bi-plot
 ```{r}
 A<-prcomp(dat)
 summary(A)
-biplot(A, choices = 1:2)
-```
-Standardize the variables in the human data and repeat the above analysis. Interpret the results of both analysis (with and without standardizing). Are the results different? Why or why not? Include captions (brief descriptions) in your plots where you describe the results by using not just your variable names, but the actual phenomena they relate to. (0-4 points)
 
+s<-summary(A)
+pca_pr <- round(1*s$importance[2, ], digits = 5)
+pca_pr2<-round(pca_pr*100,digits = 2)
+pca_lab<-paste0(names(pca_pr), " (", pca_pr2, "%)")
+
+biplot(A, choices = 1:2, cex = c(0.8, 1), col = c("grey70", "deeppink2"), xlab = pca_lab[1], ylab = pca_lab[2])
+```
+
+PCA on standardized data
 ```{r}
 dat1<-scale(dat)
 dat1<-as.data.frame(dat1)
 B<-prcomp(dat1)
 summary(B)
-biplot(B, choices = 1:2)
+
+s<-summary(B)
+pca_pr <- round(1*s$importance[2, ], digits = 5)
+pca_pr2<-round(pca_pr*100,digits = 2)
+pca_lab<-paste0(names(pca_pr), " (", pca_pr2, "%)")
+
+biplot(B, choices = 1:2, cex = c(0.8, 1), col = c("grey70", "deeppink2"), xlab = pca_lab[1], ylab = pca_lab[2])
 ```
 
-Both plot and the explained variance changed drastically. PCA seeks to expain variance. and without standardizing, the firts var seems to explain most of the variance. After standardizing it is obviuos that other components also contribute. 
+Both plot and the explained variance changed drastically. PCA seeks to explain variance. Without standardizing, the first variable seems to explain most of the variance. After standardizing it is obvious that other components also contribute, but only the first two components explain more than 10% of the variance. 
 
-In the first plot, only gni seems to explain the variance, whereas in the second plot maternal mortality,  abirth rate, education, life expectancy and ratio of the secondary education seem to explain the first component and ratio of labour force and representation of women in parlament explain the second component.
+In the first plot, only gni /which happens to be the first variable) seems to explain the variance, whereas in the second plot maternal mortality, birth rate, education, life expectancy and ratio of the secondary education seem to explain the first component and ratio of labour force and representation of women in parliament explain the second component.
 
 
+Interpretations of the obtained results
 
-Give your personal interpretations of the first two principal component dimensions based on the biplot drawn after PCA on the standardized human data. (0-2 points)
+It seems that first component relates to welfare statish and the component2 more to equity of the sexes.  When looking at the countries in the plot, most of the western states are located in the left, whereas less wealthy countires are located in the right. When looking at the second component, countries in which the status of women is not equal to that of men are located at the bottom of plot. INterestingly some of the african countries are at the top of the plot. It is worth noting that there may be some interactions between the components chosen by pca, as in wealthier countries it may possible for the other sex to not work, whereas in poorer countries both sexes may  have to work
 
-It seems that firtst component relates to welfare statish and the component2 more to equity of the sexes.
 #############
 The tea data comes from the FactoMineR package and it is measured with a questionnaire on tea: 300 individuals were asked how they drink tea (18 questions) and what are their product's perception (12 questions). In addition, some personal details were asked (4 questions).
 
 Load the tea dataset and convert its character variables to factors:
-
 
 ```{r}
 tea <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/tea.csv", stringsAsFactors = TRUE)
@@ -85,7 +88,7 @@ pivot_longer(tea1, cols = everything()) %>%
   ggplot(aes(value)) + facet_wrap("name", scales = "free") + geom_bar()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
 ```
-Explore the data briefly: look at the structure and the dimensions of the data. Use View(tea) to browse its contents, and visualize the data.
+Exploring the data briefly. 
 
 ```{r}
 library(FactoMineR)
@@ -101,7 +104,9 @@ plot(mca, invisible=c("ind"), graph.type = "classic",habillage = "quali")
 
 ```
 
-According the plot, having tea at diner or not at home have the greatest impact on the first 2 dimensions, variables close to horizontal x-axis have no lesser effect on dimension 2 and variables closer to y axis ha ve less effect on dimension1. Most of the "not" variables are close to origo, and their counterparts are located further away, meaning that they have impact on the two dimensions.
+According the plot, having tea at diner or not at home have the greatest impact on the first 2 dimensions, variables close to horizontal x-axis have no lesser effect on dimension 2 and variables closer to y axis have less effect on dimension1. Most of the "not" variables are close to origo, and their counterparts are located further away, meaning that they have impact on the two dimensions.
 
-Use Multiple Correspondence Analysis (MCA) on the tea data (or on just certain columns of the data, it is up to you!). Interpret the results of the MCA and draw at least the variable biplot of the analysis. You can also explore other plotting options for MCA. Comment on the output of the plots. (0-4 points)
+Dimension 2 seems to reflect the social affect of drinmnking tea. Factors related to social aspects of drinking tea seem to affect the y-value in the plot. Dimension 1 is harder to interpret, but one possibility is that dim1 reflects the "tea as a hobby" kind of aspect. things  like  drinking tea in a tearom and having tea time.
+
+
 

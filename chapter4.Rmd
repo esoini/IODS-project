@@ -1,10 +1,4 @@
 # 4: Clustering and classification
----
-title: "chapter4"
-author: "esoini"
-date: "2022-11-24"
-output: html_document
----
 
 ```{r}
 #Loading the data and axploring the dimensions and structure
