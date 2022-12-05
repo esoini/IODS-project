@@ -106,7 +106,7 @@ plot(mca, invisible=c("ind"), graph.type = "classic",habillage = "quali")
 
 According the plot, having tea at diner or not at home have the greatest impact on the first 2 dimensions, variables close to horizontal x-axis have no lesser effect on dimension 2 and variables closer to y axis have less effect on dimension1. Most of the "not" variables are close to origo, and their counterparts are located further away, meaning that they have impact on the two dimensions.
 
-Dimension 2 seems to reflect the social affect of drinmnking tea. Factors related to social aspects of drinking tea seem to affect the y-value in the plot. Dimension 1 is harder to interpret, but one possibility is that dim1 reflects the "tea as a hobby" kind of aspect. things  like  drinking tea in a tearom and having tea time.
+Dimension 2 seems to reflect the social affect of drinking tea. Factors related to social aspects of drinking tea seem to affect the y-value in the plot. Dimension 1 is harder to interpret, but one possibility is that dim1 reflects the "tea as a hobby" kind of aspect. things  like  drinking tea in a tearoom and having tea time.
 
 
 
