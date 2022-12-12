@@ -1,0 +1,188 @@
+---
+title: "Chapter6"
+author: "esoini"
+date: "2022-12-08"
+output: html_document
+---
+Loading the data
+```{r}
+library(tidyverse)
+
+dat1<-read.csv("./data/BPRS.csv")
+dat2<-read.csv("./data/rats.csv")
+dat2og<-read.table("https://raw.githubusercontent.com/KimmoVehkalahti/MABS/master/Examples/data/rats.txt",sep = "\t",header = T)
+
+#changing to factors
+dat1<-dat1 %>% mutate(treatment=as.factor(treatment)) %>%
+  mutate(subject= as.factor(subject)) %>%
+  mutate(id=as.factor(id))
+dat2<-dat2 %>% mutate(ID=as.factor(ID)) %>%
+  mutate(Group=as.factor(Group))
+
+#dat1 <-  dat1 %>% mutate(week = as.integer(substr(weeks,5,5)))
+#dat2 <-  dat2 %>% mutate(time = as.integer(substr(time,3,3)))
+```
+
+Dat2 has data on xxx
+
+First I will visualize the data
+```{r}
+dat2 <- dat2 %>%
+    group_by(time1) %>%
+  mutate( stdweight = (weight - mean(weight))/sd(weight) ) %>%
+  ungroup()
+
+# Plot again with the standardised weight
+library(ggplot2)
+ggplot(dat2, aes(x = time1, y = stdweight, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  scale_y_continuous(name = "standardized weight")
+
+```
+There seems to a noticable difference between group1 and other groups. Though it is of notice that groups 2 and 3 have 4 and 3 participants, respectively.
+```{r}
+dat22 <- dat2 %>%
+  filter(time1>1) %>%
+  group_by(Group, time1) %>%
+  summarise( mean = mean(weight), se = sd(weight)/sqrt(16) ) %>%
+  ungroup()
+
+ggplot(dat22, aes(x = time1, y = mean, linetype = Group, shape = Group)) +
+  geom_line() +
+  scale_linetype_manual(values = c(1,2,3)) +
+  geom_point(size=3) +
+  scale_shape_manual(values = c(1,2,3)) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, linetype="1"), width=0.3) +
+  theme(legend.position = c(0.8,0.8)) +
+  scale_y_continuous(name = "mean(weight) +/- se(weight)")
+
+dat22 <- dat2 %>%
+  filter(time1>1) %>%
+  group_by(Group, ID) %>%
+  summarise( mean = mean(weight), se = sd(weight)/sqrt(16) ) %>%
+  ungroup()
+
+
+ggplot(dat22, aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape=23, size=4, fill = "white") +
+  scale_y_continuous(name = "mean(weight), time 8-64")
+```
+Time doesnt seem to effect weight, and values at baseline predict the course pretty well. 
+
+Lets conduct anova to test the differences. Though according the plots groups 2 and three differ from group1. 
+```{r}
+
+dat3 <- dat2 %>%
+  filter(time1 > 1) %>%
+  group_by(Group,ID) %>%
+  summarise( mean=mean(weight) ) %>%
+  ungroup()
+
+dat3 <- dat3 %>%
+  mutate(baseline = dat2og$WD1)
+
+# Fit the linear model with the mean as the response 
+fit <- lm(mean~baseline+Group, data = dat3)
+
+# Compute the analysis of variance table for the fitted model with anova()
+anova(fit)
+
+```
+Groups are close to statistical signifigance. Baseline seems to predict mean well, and groups did not differ from each other.
+
+I will do contrast to checj if group 1 differs from other groups
+```{r}
+dat4<-dat3 %>% mutate(group1=ifelse(Group==1,1,2)) 
+fit2 <- lm(mean~baseline+group1, data = dat4)
+
+# Compute the analysis of variance table for the fitted model with anova()
+anova(fit2)
+```
+If we combine group 2 and 3, they seem to differ from group 1 at alpha-level .05. As the analysis was done ad-hoc, it should not be interpreted as hypothesis testing, but rather as exploring the data.
+
+##Task2
+
+Dat1 has data on 40 male subjects were randomly assigned to one of two treatment groups and each subject was rated on the brief psychiatric rating scale (BPRS) measured before treatment (week 0) and follow-up data waws collected weekly for 8 weeks. The BPRS  is used to evaluate patients suspected of having schizophrenia.
+
+Standardizing the data and drawing plots
+```{r}
+dat1 <- dat1 %>%
+    group_by(week) %>%
+  mutate( stdbprs = (bprs - mean(bprs))/sd(bprs) ) %>%
+  ungroup()
+
+# Plot again with the standardised bprs
+library(ggplot2)
+ggplot(dat1, aes(x = week, y = stdbprs, linetype = subject)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  scale_y_continuous(name = "standardized bprs")
+
+dat11<-dat1%>% arrange(week)
+
+ggplot(dat11, aes(x = week, y = stdbprs, group = id)) +
+  geom_line(aes(linetype=treatment))+
+  scale_y_continuous(name = "bprs")+
+  theme(legend.position = "top")
+
+```
+Standardized bprs scores do not seem to differ greatly between groups.
+##Regression
+
+Next I fit regression to the data, in a stepwise manner. First a regular linear regression that does not take into account that data has multiplle observation from each of the participants, ie. we cannot assume that the observation are independnt of each others, but clustered within participants.  Next  I fit a model with that has a random intercept to account for the correlations within individual, so that intercept is allowed to vary between participants. LAstly in this section I will fit random intercept random slope model in, in addition to intercept, also slope is allowed to vary by participant.
+
+
+```{r}
+# create a regression model RATS_reg
+reg <- lm(bprs~ week+treatment, data = dat1)
+
+# print out a summary of the model
+summary(reg)
+
+library(lme4)
+
+# Create a random intercept model
+ref <- lmer(bprs ~ week + treatment + (1 | subject), data = dat1, REML = FALSE)
+
+# Print the summary of the model
+summary(ref)
+
+ref1 <- lmer(bprs ~ week + treatment + (week | subject), data = dat1, REML = FALSE)
+
+# print a summary of the model
+summary(ref1)
+
+# perform an ANOVA test on the two models
+anova(ref1, ref)
+
+```
+Random intercept reduces the error of the model compared to regular regression. According to anova, the model with random intercept and random slope fits the data better at alpha level =.05 . This means that ref1 explains more variation in the data compared to ref.
+
+Lastly, I will fit a model that allows interaction between week and treatment
+```{r}
+ref2 <- lmer(bprs ~ week + treatment + (week | subject) + (week*treatment), data = dat1, REML = FALSE)
+summary(ref2)
+
+anova(ref2,ref1)
+
+Fitted <- fitted(ref1)
+dat1$fitted<-Fitted
+
+# draw the plot of RATSL with the Fitted values of weight
+
+ggplot(dat1, aes(x = week, y = fitted, group= id)) +
+  geom_line(aes(linetype=treatment))+
+  scale_x_continuous(name = "week", breaks = seq(0, 10, 2)) +
+  scale_y_continuous(name = "Fitted weight (grams)") +
+  theme(legend.position = "top")
+
+```
+
+Model that allows interaction between week and treatment does not improve the fit at alpha level = .05. When looking at the results from ref1, ( model with random intercepts and random slopes) the two groups do not seem to differ from each other. We dont know if the other group was control group or did they compare two different treatments, so all we can say is that the treatments do not differ between their effect on bprs. All the participants showed a linear trend, with weeks being associated with lower scores on bprs.
+
+
+
