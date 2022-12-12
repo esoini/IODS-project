@@ -5,7 +5,7 @@ date: "2022-12-08"
 output: html_document
 ---
 
-# Analysis of longitudinal data
+# 6: Analysis of longitudinal data
 
 Loading the data
 ```{r}
