@@ -4,6 +4,8 @@ author: "esoini"
 date: "2022-12-08"
 output: html_document
 ---
+#Analysis of longitudinal data
+
 Loading the data
 ```{r}
 library(tidyverse)
@@ -23,7 +25,7 @@ dat2<-dat2 %>% mutate(ID=as.factor(ID)) %>%
 #dat2 <-  dat2 %>% mutate(time = as.integer(substr(time,3,3)))
 ```
 
-Dat2 has data on xxx
+Dat2 has data on 16 rats that were put on different diet. Their weight (in grams) was measured for 9 weeks. 
 
 First I will visualize the data
 ```{r}
