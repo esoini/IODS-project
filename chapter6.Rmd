@@ -4,7 +4,8 @@ author: "esoini"
 date: "2022-12-08"
 output: html_document
 ---
-#Analysis of longitudinal data
+
+# Analysis of longitudinal data
 
 Loading the data
 ```{r}
